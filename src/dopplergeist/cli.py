@@ -93,6 +93,9 @@ def main():
         installed_version="development"
     parser.add_argument("--version",action="version",version=f"%(prog)s {installed_version}")
     sub=parser.add_subparsers(dest="command",required=True)
+    doctor=sub.add_parser("doctor",help="Check local prerequisites without downloading data or analyzing audio")
+    doctor.add_argument("--jobs",default="jobs",help="Job directory whose storage to inspect; no directories are created")
+    doctor.add_argument("--json",action="store_true",help="Print machine-readable diagnostics")
     run=sub.add_parser("run",help="Measure events, filter geometry, rank and refine locations")
     run.add_argument("config")
     run.add_argument("--output",required=True)
@@ -153,7 +156,20 @@ def main():
             config=operator_config(args.config,args.online)
         except (OSError, ValueError) as exc:
             parser.error(f"Invalid operator configuration: {exc}")
-    if args.command=="run":
+    if args.command=="doctor":
+        from .diagnostics import diagnose
+        report=diagnose(args.jobs)
+        if args.json:
+            print(json.dumps(report,indent=2))
+        else:
+            for check in report["checks"]:
+                print(f"[{check['status'].upper()}] {check['name']}: {check['detail']}")
+            print(report["scope"])
+            if report["status"]=="error":
+                print("Fix the errors above before starting analysis. Install project dependencies with: python -m pip install -e .")
+        if report["status"]=="error":
+            raise SystemExit(1)
+    elif args.command=="run":
         from .pipeline import run
         run(args.config,args.output)
     elif args.command=="measure":
