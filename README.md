@@ -53,6 +53,20 @@ dopplergeist --help
 
 To install in an existing Python environment instead, use `python -m pip install dopplergeist`. The commands below work with either installation. See the [PyPI and packaging guide](docs/PYPI.md).
 
+Before starting a long analysis, check your local installation:
+
+```bash
+dopplergeist doctor --jobs jobs
+```
+
+This offline check runs FFmpeg/ffprobe, imports runtime libraries in an isolated
+process, verifies the packaged interface, and inspects available job storage
+without creating directories. Use `--json` for structured output. Errors return
+exit code 1; storage warnings alone return 0. The 20 GiB warning threshold is
+advisory: large searches can require more, and custom cache storage needs a
+separate capacity check. Passing does not establish flight-data coverage or
+geolocation accuracy.
+
 ### Option A: use the browser interface
 
 ```bash
